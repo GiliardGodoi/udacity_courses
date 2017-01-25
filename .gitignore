@@ -92,3 +92,4 @@ ENV/
 *.csv
 *.xml
 *.xls
+*.html
