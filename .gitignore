@@ -87,3 +87,8 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# arquivos de dados
+*.csv
+*.xml
+*.xls
