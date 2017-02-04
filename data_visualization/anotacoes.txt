@@ -1,0 +1,31 @@
+
+
+#2017-01-26
+var Chartjunk = ["heavy or darky grid lines",
+                    "unnecessary text",
+                    "ornamental chart axes",
+                    "pictures within graphs",
+                    "shading or 3D perspective"
+                  ];
+// As anotações que os usuários podem fazerm sobre um gráfico também pode ser considerada um
+// adereço desnecessário ou que atrapalha a visualização, isto é, seu entendimento.
+// Problema é a oclusão de objetos...
+
+var Data_Ink_Ratio = "Proporção de dados representados por quantidade de tinta utilizada. Quanto menor melhor";
+
+        low <--------------------------------------------------------> high
+
+var Lie_Factor  /*
+                  Fator da mentira. Descreve a integridade dos dados ou a qualidade de representação dos dados.
+                  Concebido por Edward Tufte
+                */
+Lie_Factor   = " Tamanho do Efeito mostrado nos gráfico  dividido pelo tamanho do efeito mostrado nos dados."
+
+  if ( 0.95 < Lie_Factor < 1.05 ){
+    "okay"
+  }
+
+2017-02-01
+Quais as vantagens que podemos obter da separação dos dados da representação destes dados?
+
+Quais os problemas que podem surgir se combinarmos os dados com a sua representação, isto é, como o método que utilizamos para visualiza-los?
