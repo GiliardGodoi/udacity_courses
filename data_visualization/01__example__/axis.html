@@ -1,0 +1,105 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            .bar{
+                fill : steelblue;
+                stroke : aliceblue;
+                stroke-width: 2px;
+            }
+            .bar-label{
+                font-family: sans-serif;
+                font-size: 15px;
+                color: black;
+            }
+        </style>
+    </head>
+    <body>
+        <script src="https://d3js.org/d3.v4.js"></script>
+        <script>
+            var margin = {top : 20 , bottom : 20, right : 20, left : 100 }; // [20, 30 , 20, 30];
+            var height = 500 - margin.top - margin.bottom;
+            var width = 960 - margin.right - margin.left;
+
+            var svg = d3.select("body")
+                        .append("svg")
+                        .attr("width",width + margin.right + margin.left )
+                        .attr("height", height + margin.top + margin.bottom )
+                    .append('g')
+                        .attr('class', 'chart')
+                        .attr('transform', "translate("+margin.right+","+margin.bottom+")" );
+            var parser = d3.timeParse("%b %Y");
+            d3.csv("stocks.csv", (line) => {
+                line.date = parser(line.date);
+                return line;
+            } ,(data) => {
+                var symbols = d3.nest()
+                                .key((d)=> { return d.symbol })
+                                .entries(data);
+                debugger;
+                symbols.forEach( s => {
+                    s.sumPrice = d3.sum(s.values, d => d.price ); // somando os valores de todos os preços 
+                    s.maxPrice = d3.max(s.values, d => d.price );
+                    s.minPrice = d3.min(s.values, d => d.price );
+                });
+                //debugger;
+                var price_scale = d3.scaleLinear()
+                                    .range([0, height])
+                                    .domain([0, d3.max(symbols, s =>  s.sumPrice ) ]);
+
+                var x_labels = d3.scaleBand()
+                                .range([0, width])
+                                .domain( symbols.map( (s) => { 
+                                    return s.key;
+                                }))
+                                .padding(0.2);
+                var labels_point = d3.scalePoint()
+                                    .range([0 , width])
+                                    .domain(symbols.map( (s) => { 
+                                    return s.key;
+                                }))
+                                .padding(0.2);
+                debugger;
+                var chart = svg.selectAll('.chart')
+                                .append('rect')
+                                .data(symbols)
+                                .enter()
+                                .append('rect')
+                                .attr('width', x_labels.bandwidth() )
+                                .attr('height', (d) => {
+                                    return price_scale(d.sumPrice);
+                                } )
+                                .attr('y', (d) => {
+                                    return height - price_scale(d.sumPrice);
+                                    //return 0;
+                                })
+                                .attr('x', (d) => {
+                                    return x_labels(d.key);
+                                })
+                                .attr('class', 'bar');
+                debugger;
+                var labels = svg.selectAll('.chart')
+                                .append('text')
+                                .data(symbols)
+                                .enter()
+                                .append('text')
+                                .text( s => {
+                                    return parseInt(s.sumPrice);
+                                })
+                                .attr('x', (s, i) => {
+                                    return labels_point(s.key);
+                                })
+                                .attr('y', (s) => {
+                                    return height - price_scale(s.sumPrice) - 5;
+                                })
+                                .attr("text-anchor", "middle")
+                                .attr('class', 'bar-label');
+                    // add the x Axis
+              var x_axel = svg.append("g")
+                              .attr("transform", "translate(0," + height + ")")
+                              .call(d3.axisBottom(x_labels));
+              var y_axel = svg.append("g").call(d3.axisLeft(price_scale));
+            });
+        </script>        
+    </body>
+</html>
