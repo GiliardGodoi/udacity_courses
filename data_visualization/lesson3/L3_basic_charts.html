@@ -6,12 +6,36 @@
     <script src="http://dimplejs.org/dist/dimple.v2.0.0.min.js"></script>
     
     <style>
-      circle.dimple-series-1 {
-        fill: red;
+      h2 {
+        color: black;
+        text-align: center;
       }
 
-      h2 {
-        text-align: center;
+      .axis {
+        font-family: arial;
+        font-size: 0.6em;
+      }
+
+      path {
+        fill: none;
+        stroke: black;
+        stroke-width: 2px;
+      }
+
+      .tick {
+        fill: none;
+        stroke: black;
+      }
+
+      circle {
+        opacity: 0.4;
+        stroke: none;
+      }
+      
+      .line_plot {
+        fill: none;
+        stroke: #4eb0bb;
+        stroke-width: 1px;
       }
     </style>
 
@@ -27,9 +51,9 @@
               width = 1400 - margin,
               height = 600 - margin;
 
-          // d3.select("body")
-          //   .append("h2")
-          //   .text("World Cup Attendance")
+           d3.select("body")
+             .append("h2")
+             .text("World Cup Attendance")
 
           var svg = d3.select("body")
             .append("svg")
@@ -41,25 +65,62 @@
       /*
         Dimple.js Chart construction code
       */
+        d3.select("svg")
+          .selectAll("circle")
+          .data(data)
+          .enter()
+          .append("circle");    
 
-          debugger;
+          var time_extent = d3.extent(data, (d) => {
+            return d['date']
+          });
+          var count_extent = d3.extent(data, (d)=> {
+            return d['attendance']
+          }); 
+          var time_scale = d3.time.scale()
+                             .range([margin, width])
+                             .domain(time_extent);
+          var count_scale = d3.scale.linear()
+                              .range([height, margin])
+                              .domain(count_extent);
+          var time_axis = d3.svg.axis().scale(time_scale).ticks(d3.time.years, 2);
+          var count_axis = d3.svg.axis().scale(count_scale).orient('left');
 
-          d3.select("svg")
-            .selectAll("circle")
-            .data(data)
-            .enter()
-            .append("circle");
+          d3.select('svg')
+            .append('g')
+            .attr('class', 'axis x')
+            .attr('transform', 'translate(0,'+height+ ')')
+            .call(time_axis);
 
-          debugger;
+         d3.select('svg')
+           .append('g')
+           .attr('class', 'axis y')
+           .attr('transform', 'translate('+margin+')')
+           .call(count_axis);
 
-          var x = myChart.addTimeAxis("x", "year"); 
-          myChart.addMeasureAxis("y", "attendance");
-          x.dateParseFormat = "%Y";
-          x.tickFormat = "%Y";
-          x.timeInterval = 4;
-          myChart.addSeries(null, dimple.plot.line);
-          myChart.addSeries(null, dimple.plot.scatter);
-          myChart.draw();
+        debugger
+        let radius = '5px';
+        let color = "red";
+
+        d3.selectAll('circle')
+          .attr('cx', function(d){
+            return time_scale(d['date']);
+          })
+          .attr('cy', function(d) {
+            return count_scale(d['attendance']);
+          })
+          .attr('r', function(d){
+            if(d['home'] == d['team1'] || d['home'] == d['team2']){
+              return '10px';
+            }
+            return '5px';
+          })
+          .attr('fill', function(d){
+            if(d['home'] == d['team1'] || d['home'] == d['team2']){
+              return 'red';
+            }
+            return 'blue';
+          });          
         };
 
     </script>
@@ -70,7 +131,14 @@
     Use D3 (not dimple.js) to load the TSV file
     and pass the contents of it to the draw function
     */
-  d3.tsv("world_cup.tsv", draw);
+  //https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md
+  // example date:27-05-1934 16:00 h)
+  format = d3.time.format('%d-%m-%Y (%H:%M h)');
+  d3.tsv("world_cup_geo.tsv", (d)=> {
+    d['date'] = format.parse(d['date']);
+    d['attendance'] = +d['attendance'];
+    return d;
+  } ,draw);
   </script>
 </body>
 </html>
