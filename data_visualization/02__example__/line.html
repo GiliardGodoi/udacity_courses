@@ -1,0 +1,80 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Line Chart</title>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+</head>
+<body>
+    <svg width="960" height="500"></svg>
+    <script>
+        //url example https://bl.ocks.org/mbostock/3883245
+        var margin = { top : 20, right : 20, left : 50, bottom : 30}, 
+            svg = d3.select('svg'),
+            width = +svg.attr('width') - margin.left - margin.right,
+            height = +svg.attr('height') - margin.top - margin.bottom,
+            group_chart = svg.append('g').attr('transform', 'translate('+ margin.left +' , '+ margin.top +' )');
+        
+        var parseTime = d3.timeParse('%d-%b-%y'); //Quando os dados são recebidos, as datas estão no formato 31-May-12 que representa, 
+        //respectivamente, o dia com dois algorismos, o mês abreviado com três letras e o ano com os dois últimos algarismos.
+        // Estas datas estão armazenadas como strings. Observe que a string '%d-%b-%y' traduz como os dados das datas estão escritos.
+        // Então é preciso converte los para o formato Date() que o javascript entende. 
+        //
+
+        var x_scale = d3.scaleTime().rangeRound([0, width]); // Definindo a escala para o eixo X. 
+        var y_scale = d3.scaleLinear().rangeRound([height, 0]); //Definindo a escala para o eixo Y.
+        //Qual a diferença entre definir .range([m1, m2]) e rangeRound([m1, m2])?
+        // rangeRound define um método de interpolação. Seria equivalente a definir:
+        //    range(range)
+        //                .interpolate(d3.interpolateRound);
+        //  É uma forma conveniente de definir intervalos iguais entre dois números 'a' e 'b'.
+        // round tem ainda o cuidado de definir o próximo número inteiro  para esses intervalos.
+        // é mais ou menos isso. 08/03/2017
+
+        d3.tsv('date.tsv', function(line){
+            //essa função faz transformações em cada linha dos dados recebidos
+            line.date = parseTime(line.date); // parse para formato de data
+            line.close =  +line.close; // parse para inteiro ou numérico
+            return line;
+        }, function(error, data){
+            if (error) throw error;
+            debugger;
+            x_scale.domain( d3.extent(data, (d) => { return d.date; }) );
+            y_scale.domain( d3.extent(data, (d) => { return d.close; }) );
+            // d3.extent([ array de dados], [função acessora])  -- retorna um array com o valor mínimo e máximo do array de dados.
+
+            var line = d3.line().x( d => x_scale(d.date)  )
+                                .y( d => y_scale(d.close) );
+            // d3.line() -> construtor para uma função que irá gerar a descrição do caminho (path) para cada registro do array de dados,
+            // isto é, criamos um objeto do tipo 'line', sobre o qual especificaremos através das \\
+            // funções acessoras .x([function]) e .y([function]) quais dados vão ser usados para definir as coordenadas X e Y
+            // Para cada registros do nosso dados line() saberá quais dados serão usados para renderizar estas coordenadas;
+            // Além disso podemos definir quais escalas serão utilizadas para traduzir estes dados em uma representação conveniente dos nossos dados.
+
+            group_chart.append('g')
+                            .attr('transform', 'translate( 0, '+height+' )' )
+                            .call(d3.axisBottom(x_scale));
+            group_chart.append('g')
+                            .call(d3.axisLeft(y_scale))
+                        .append('text')
+                            .attr('transform', 'rotate(-90)')
+                            .attr('fill','#000')
+                            .attr('y',6)
+                            .attr('dy', '0.71em')
+                            .attr('text-anchor', 'end')
+                            .text('Price ($)');
+            group_chart.append('path') // o que significa cada um destes atributos?
+                            .datum(data)
+                            .attr("fill", "none")
+                            .attr("stroke", "steelblue")
+                            .attr("stroke-linejoin", "round")
+                            .attr("stroke-linecap", "round")
+                            .attr("stroke-width", 1)
+                            .attr("d", line);
+            // .datum() -- Unlike selection.data, this method does not compute a join and does not affect indexes or the enter and exit selections.
+        });
+    </script>
+    
+</body>
+</html>

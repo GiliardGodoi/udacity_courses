@@ -1,0 +1,103 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Multi line chart</title>
+    <script src="//d3js.org/d3.v4.min.js"></script>
+    <style>
+        .line {
+            fill: none;
+            stroke: black;
+            stroke-width: 1.5px;
+        }
+    </style>
+</head>
+<body>
+    <svg width="960" height="500"></svg>
+    <script>
+        // url fonte:  https://bl.ocks.org/mbostock/3884955
+        var margin = { top : 20, right : 80, left : 50, bottom : 30}, 
+            svg = d3.select('svg'),
+            width = +svg.attr('width') - margin.left - margin.right,
+            height = +svg.attr('height') - margin.top - margin.bottom,
+            group_chart = svg.append('g').attr('transform', 'translate('+ margin.left +' , '+ margin.top +' )');
+        
+        var parseTime = d3.timeParse('%Y%m%d');
+
+        var x_scale = d3.scaleTime().range([0, width]),
+            y_scale = d3.scaleLinear().range([height, 0]),
+            z_scale = d3.scaleOrdinal( d3.schemeCategory10 );
+            // o que é esse schemeCategory10
+
+        var line = d3.line()
+                     .curve( d3.curveBasis)
+                        .x( d => x_scale(d.date) )
+                        .y( d => y_scale(d.temperature) );
+        d3.tsv('temperature.tsv', (d, _ , columns ) => {
+            d.date = parseTime(d.date);
+            for ( var i = 1, n = columns.length, c; i < n; ++i ) d[c = columns[i] ] = +d[c]  // este comando não é nenhum pouco convencional para mim.
+            return d;
+        }, (error, data) => {
+            //começo da função para desenhar a imagem
+            if(error) throw error;
+            
+            var cities = data.columns.slice(1).map( (id) => {  // será que ele poderia usar outro método aqui para transformar esta estrutura de dados.
+                    return {
+                        id : id,
+                        values : data.map( d => {
+                            return { date : d.date, temperature : d[id]} ;
+                        })
+                    };
+            });
+            debugger;
+
+            x_scale.domain( d3.extent(data, d => d.date ) );
+
+            y_scale.domain([
+                d3.min(cities, c => { return d3.min(c.values, d => d.temperature )}),
+                d3.max(cities, c => { return d3.max(c.values, d => d.temperature )})
+            ]);
+
+            z_scale.domain( cities.map( c => c.id ));
+
+            group_chart.append('g')
+                        .attr('class', 'axis axis-x')
+                        .attr('transform', 'translate(0, '+height+' )')
+                        .call(d3.axisBottom(x_scale));
+            group_chart.append('g')
+                            .attr('class', 'axis axis-y')
+                            .call(d3.axisLeft(y_scale))
+                        .append('text')
+                            .text('Temperature, ºF')
+                            .attr('transform', 'rotate(-90)')
+                            .attr('fill', '#000')
+                            .attr('y',6)
+                            .attr('dy', '0.71em');
+                        //faltou o texto do eixo Y e também 
+            var city = group_chart.selectAll('.city')
+                                    .data(cities)
+                                    .enter()
+                                    .append('g')
+                                    .attr('class', 'city');
+            //percebemos que algumas estruturas de dados podem ser mais adequadas para determinados tipos de visualização de dados.
+            // o que nós temos que ter em mente então? Por exemplo aqui eu poderia querer usar força bruta para desenhar cada linha para cada cidade, eu poderia utilizar um 'for'
+            // mas sabemos que a biblioteca meio que já faz isso para nós.
+
+            city.append('path').attr('class', 'line')
+                    .attr('d', d => line(d.values) )
+                    .style('stroke', d => z_scale(d.id) );
+                    debugger;
+            city.append("text")
+                    .datum(function(d) { return {id: d.id, value: d.values[d.values.length - 1]}; }) // o que este comando aqui faz!!
+                    .attr("transform", function(d) { return "translate(" + x_scale(d.value.date) + "," + y_scale(d.value.temperature) + ")"; })
+                    .attr("x", 3)
+                    .attr("dy", "0.35em")
+                    .style("font", "10px sans-serif")
+                    .text(function(d) { return d.id; }); // as cores foram definidos como escalas.
+                    
+        });
+                    
+    </script>
+</body>
+</html>

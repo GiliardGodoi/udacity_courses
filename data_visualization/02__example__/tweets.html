@@ -1,0 +1,40 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Tweets per day</title>
+    <script src="//d3js.org/d3.v4.min.js"></script>
+    <style>
+
+    </style>
+</head>
+<body>
+    <svg width="960" height="500"></svg>
+    <script>
+        // https://bl.ocks.org/mbostock/d8bcc4b130df420d6c40
+         var margin = { top : 20, right : 80, left : 50, bottom : 30}, 
+            svg = d3.select('svg'),
+            width = +svg.attr('width') - margin.left - margin.right,
+            height = +svg.attr('height') - margin.top - margin.bottom,
+            group_chart = svg.append('g').attr('transform', 'translate('+ margin.left +' , '+ margin.top +' )');
+        
+        var parseTime = d3.timeParse('%H:%M'),
+            midnight = parseTime("00:00");
+        
+        var parseUTCTime = d3.utcParse('%H:%M'),
+            midnightUTC = parseUTCTime('00:00');
+        debugger;
+        var x_scale = d3.scaleTime().range([0, width]),
+            y_scale = d3.scaleLinear().range([height, 0]);
+
+        d3.csv('tweets.csv', d => {
+
+        }, (error, data) =>{
+            if (error) throw error;
+
+        });
+    </script>
+</body>
+
+</html>
