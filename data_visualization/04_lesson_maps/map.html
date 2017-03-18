@@ -1,0 +1,84 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Map</title>
+    <script src="http:\\d3js.org/d3.v3.min.js"></script>
+    <style>
+     
+    </style>
+    <script>
+        format = d3.time.format("%d-%m-%Y (%H:%M h)");
+
+        function draw(geo_data) {
+            "use strict";
+            var margin = 75,
+                width = 1400 - margin,
+                height = 900 - margin;
+            
+            var svg = d3.select('body')
+                        .append('svg')
+                        .attr('width', width + margin)
+                        .attr('height', height + margin)
+                        .append('g')
+                        .attr('class', 'chart');
+            debugger;
+            var projection = d3.geo.mercator()
+                                    .scale(140)
+                                    .translate( [width/2, height/1.8]);
+            
+            var path = d3.geo.path().projection(projection);
+            debugger;
+            var map = svg.selectAll('path')
+                        .data(geo_data.features)
+                        .enter()
+                        .append('path')
+                        .attr('d', path)
+                        .attr('stroke', 'black')
+                        .attr('fill','lightblue');
+            
+            var plot_point = function(data){
+                debugger;
+                var nested = d3.nest()
+                                .key( function (d) {
+                                    return d['date'].getUTCFullYear();
+                                })
+                                .rollup( function(leaves) {
+                                    debugger;
+                                    var total = d3.sum(leaves, function(l){ return l.attendance; });
+                                    var coords = leaves.map(function(d){
+                                            return projection([ +d.long, +d.lat ]);
+                                        });
+                                    var center_x = d3.mean(coords, function(d){
+                                            return d[0];
+                                        });
+                                    var center_y = d.mean(coords, function(d){
+                                            return d[1];
+                                        });
+                                    return {
+                                        'total' : total,
+                                        'x' : center_x,
+                                        'y' :center_y
+                                    };
+                                })
+                                .entries(data);
+            };
+
+            d3.tsv('world_cup_geo.tsv', function(l){
+                l['attendance'] = +l['attendance'];
+                l['date'] = format.parse(l['date']);
+                return l;
+            } ,plot_point);
+
+        };
+    </script>
+
+</head>
+<body>
+    <script>
+
+        d3.json("world_countries.json", draw);
+    </script>
+</body>
+</html>
