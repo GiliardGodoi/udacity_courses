@@ -92,3 +92,7 @@ ENV/
 *.csv
 *.xml
 *.xls
+
+.DS_Store
+build/
+node_modules/
