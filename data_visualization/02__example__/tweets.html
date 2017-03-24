@@ -6,6 +6,22 @@
     <title>Tweets per day</title>
     <script src="//d3js.org/d3.v4.min.js"></script>
     <style>
+        .dots path {
+            fill: none;
+            stroke: steelblue;
+            stroke-width: 1.5px;
+        }
+        .axis--y line {
+            stroke-opacity: 0.2;
+        }
+
+        .axis--y path {
+            stroke: none;
+        }
+
+        .axis text {
+            font: 10px sans-serif;
+        }
 
     </style>
 </head>
@@ -13,7 +29,7 @@
     <svg width="960" height="500"></svg>
     <script>
         // https://bl.ocks.org/mbostock/d8bcc4b130df420d6c40
-         var margin = { top : 20, right : 80, left : 50, bottom : 30}, 
+         var margin = { top : 40, right : 40, left : 40, bottom : 40}, 
             svg = d3.select('svg'),
             width = +svg.attr('width') - margin.left - margin.right,
             height = +svg.attr('height') - margin.top - margin.bottom,
@@ -24,14 +40,42 @@
         
         var parseUTCTime = d3.utcParse('%H:%M'),
             midnightUTC = parseUTCTime('00:00');
-        debugger;
-        var x_scale = d3.scaleTime().range([0, width]),
+        
+        var x_scale = d3.scaleUtc().range([0, width]);
             y_scale = d3.scaleLinear().range([height, 0]);
 
-        d3.csv('tweets.csv', d => {
-
+        d3.csv('tweets.csv', line => {
+            line.rate = (+line.count / 327) * 60;
+            line.count = +line.count;
+            line.time = parseUTCTime(line.time);
+            //line.time.setUTCHours((line.time.getUTCHours() + 24 - 7) % 24); // não entendi que mudanças essa linha de código faz nos dados. Mas a mudança visual e perceptível.
+            return line;
         }, (error, data) =>{
             if (error) throw error;
+            
+            y_scale.domain([0, d3.max(data, d => d.rate )]);
+            //x_scale.domain([midnight, d3.timeDay.offset(midnight)]);  // <- esta se mostrou uma forma equivocada de estabelecer o domain de um conjunto de dados temporais.
+            // a função x_scale estava retornando valores negativos para algumas datas, fazendo com que pontos fossem plotados para fora do gráfico no sentido do eixo x.
+            x_scale.domain(d3.extent(data, function(d) { return d.time; })).nice(d3.utcDay); // não sei porque essa função .nice(d3.utcDay) funciona melhor que a anterior.
+
+            
+            group_chart.append("g")
+                .attr("class", "axis axis-x")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x_scale).tickFormat( d3.timeFormat('%I %p')));
+
+            group_chart.append('g')
+                .attr('class','axis axis-y')
+                .call(d3.axisLeft(y_scale).tickFormat( d3.format('.2s')));
+
+            group_chart.append('g')
+                    .attr('class','dots')
+                .selectAll('path')
+                    .data(data)
+                    .enter()
+                    .append('path')
+                    .attr('transform', d => { return 'translate('+ x_scale(d.time) +' , '+ y_scale(d.rate) +')'; })
+                    .attr('d', d3.symbol().size(40).type( d3.symbolCircle ) );
 
         });
     </script>
