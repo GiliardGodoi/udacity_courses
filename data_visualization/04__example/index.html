@@ -1,0 +1,52 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Circles</title>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <style>
+        body{
+           
+        }
+    </style>
+</head>
+<body>
+    <svg width="960" height="500"></svg>
+    <script>
+        var svg = d3.select('svg'),
+        width = +svg.attr('width'),
+        height = +svg.attr('height'),
+        angles = d3.range(0, 2 * Math.PI, Math.PI /200);
+
+        var path = svg.append('g')
+                        .attr('transform', 'translate(' + width / 2  + ',' + height / 2  + ')')
+                        .attr('fill', 'none')
+                        .attr('stroke-width', 10)
+                        .attr('stroke-linejoin','round')
+                    .selectAll('path')
+                        .data(['cyan', 'magenta', 'yellow'])
+                        .enter()
+                        .append('path')
+                        .attr('stroke', d => d )
+                        .style('mix-blend-mode', 'darken')
+                        .datum( (d, i) => {
+                            return d3.radialLine()
+                                     .curve(d3.curveLinearClosed)
+                                     .angle( a => a)
+                                     .radius( a => {
+                                         var t =  d3.now() / 1000;
+                                         return 200 + Math.cos( a * 8 - i * 2 * Math.PI / 3 + t ) * Math.pow( ( 1 + Math.cos( a - t)) / 2, 3) * 30;
+                                     });
+                        });
+
+                        d3.timer( () => {
+                            
+                            path.attr('d', (d) =>{
+                                return d(angles);
+                            })
+                        }, 5000);
+                    
+    </script>
+</body>
+</html>
