@@ -1,0 +1,86 @@
+<!DOCTYPE>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <script src="https://d3js.org/d3.v4.min.js"></script>
+    <style>
+        .data {
+            fill: steelblue;
+        }
+
+        .axis--y .tick line {
+            stroke: red;
+            stroke-opacity: 0.8;
+        }
+
+        .axis--x .tick line {
+            stroke: #000;
+            stroke-opacity: 0.25;
+        }
+
+        .axis .domain {
+            
+        }
+    </style>
+    </head>
+    <body>
+        <svg width="960" height="960"></svg>
+        <script>
+            var parseTime = d3.timeParse('%d\/%m\/%Y');
+            var formatTime = d3.timeFormat('%m')
+            var svg = d3.select("svg"),
+            margin = {top: 30, right:30, bottom: 30, left: 70},
+            width = svg.attr("width") - margin.left - margin.right,
+            height = svg.attr("height") - margin.top - margin.bottom,
+            group_chart = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            d3.tsv('leis_2016.tsv',type, (err, data) => {
+                if(err) throw err;
+                
+                var d0 = parseTime('01/01/2016'), d1 = parseTime('31/12/2016');
+                
+                var y_scale = d3.scaleBand().rangeRound([0, height]).domain(data.map(d => d.nro_projeto_lei) ).paddingInner(0.05).align(0.1);
+                var x_scale = d3.scaleTime().rangeRound([0, width]).domain([d0, d1]);
+                
+                var area = d3.area().curve(d3.curveStepBefore)
+                                    .y(d => y_scale(d.nro_projeto_lei))
+                                    .x0(d => x_scale(d.dt_recebimento))
+                                    .x1(d => x_scale(d.dt_votacao_2) );                
+                group_chart.append('g')
+                            .attr('class', '.axis')
+                        .selectAll('rect')
+                            .data(data)
+                            .enter()
+                            .append('rect')
+                            .attr('class', 'data')
+                            .attr('y',d => y_scale(d.nro_projeto_lei) )
+                            .attr('x',d => x_scale(d.dt_recebimento) )
+                            .attr('height', y_scale.bandwidth())
+                            .attr('width', d => {
+                                return x_scale(d.dt_votacao_2) - x_scale(d.dt_recebimento);
+                            } );
+
+                group_chart.append("g").attr("class", "axis axis--y").call(d3.axisLeft(y_scale) );
+
+                group_chart.append('g').attr('class', 'axis axis--x').call( d3.axisTop(x_scale).tickSize(-height).tickPadding(5) );
+                
+            });
+
+            function type(d){
+                
+                d.dt_recebimento = d.dt_recebimento ? parseTime(d.dt_recebimento): '';
+                d.dt_comissao_legislacao = d.dt_comissao_legislacao ? parseTime(d.dt_comissao_legislacao) : '';
+                d.dt_comissao_financas = d.dt_comissao_financas ? parseTime(d.dt_comissao_financas) : '';
+                d.dt_comissao_educacao = d.dt_comissao_educacao ? parseTime(d.dt_comissao_educacao) : '';
+                d.dt_comissao_obras = d.dt_comissao_obras ? parseTime(d.dt_comissao_obras) : '';
+                d.dt_votacao_1 = d.dt_votacao_1 ? parseTime(d.dt_votacao_1): '';
+                d.dt_votacao_2 = d.dt_votacao_2 ? parseTime(d.dt_votacao_2) : '';
+
+                return d;
+            }
+        </script>
+    </body>
+</html>
+
