@@ -4,9 +4,101 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
+    <style>
+        .data {
+            fill: steelblue;
+        }
+
+        .axis--y .tick line {
+            stroke: #fff;
+            stroke-opacity: 0.8;
+        }
+
+        .axis--x .tick line {
+            stroke: #000;
+            stroke-opacity: 0.25;
+        }
+
+        .axis .domain {
+            display: none;
+        }
+    </style>
+    <script src="//d3js.org/d3.v4.min.js"></script>
 </head>
 <body>
+    <svg width="960" height="500"></svg>
     <script>
+        //https://bl.ocks.org/mbostock/3cfa2d1dbae2162a60203b287431382c
+        var parseTime = d3.utcParse('%Y-%m-%dT%H:%M:%S.%L'),
+            formatHour = d3.utcFormat('%-I:%M %p'),
+            formatMonth = d3.utcFormat("%B");
+        var svg = d3.select("svg"),
+        margin = {top: 0, right: 0, bottom: 0, left: 70},
+        width = svg.attr("width") - margin.left - margin.right,
+        height = svg.attr("height") - margin.top - margin.bottom,
+        g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        var x = d3.scaleUtc().rangeRound([0, width]);
+        var y = d3.scaleUtc()
+                .domain([date(19.65 * 36e5), date(32.35 * 36e5)]) // about 7:40 PM to 8:20 AM
+                .rangeRound([0, height]);
+        /*
+            date(19.65 * 36e5) => Thu Jan 01 1970 17:39:00 GMT-0200 (Horário brasileiro de verão) 
+            date(32.35 * 36e5) => Fri Jan 02 1970 06:21:00 GMT-0200 (Horário brasileiro de verão)
+            A função date recebe os milesegundos de uma data qualquer e converte para um Date Object.
+            Os deslocamentos são medidos em milissegundos, uma vez que é a convenção JavaScript. 
+            Para evitar inconsistências nos fusos horários locais do navegador, as datas são representadas 
+            como horários locais nos dados, mas analisadas como UTC . 
+            Os objetos Date resultantes são inconsistentes com as datas originais, 
+            mas a diferença é irrelevante porque só queremos traçar a hora local do dia. Isto é, a diferença
+            entre as datas. 
+        */
+        var area = d3.area()
+                    .curve(d3.curveStepAfter) // define um método para interpolação de curva. Os métodos disponíveis são: curveLinear, curveStep, curveStepAfter, curveStepBefore, curveBasis, CurveCardinal e etc. Veja https://bl.ocks.org/d3noob/ced1b9b18bd8192d2c898884033b5529
+                    .x(function(d) { return x(d.day); })
+                    .y0(function(d) { return y(date(d[0] - d.day)); })
+                    .y1(function(d) { return y(date(d[1] - d.day)); });
+
+        g.append("g")
+                .attr("class", "axis axis--y")
+                .call(d3.axisLeft(y)
+                    .tickFormat(formatHour)
+                    .tickSize(-width)
+                    .tickPadding(10));
+        
+        d3.csv('sleep.csv', type, (error, data) =>{ //requisitando os dados do servirdor
+            if(error) throw error; 
+
+            var date0 = data[0].day,  // 
+                 date1 = d3.utcDay.offset(data[data.length - 1].day, 1);
+            x.domain([date0, date1]);
+            g.append("g")
+                        .attr("class", "axis axis--x")
+                        .attr("transform", "translate(0," + height + ")")
+                        .call(d3.axisBottom(x)
+                            .tickFormat(formatMonth)
+                            .tickSize(-height)
+                            .tickPadding(-10))
+                        .selectAll("text")
+                        .attr("text-anchor", "start")
+                        .attr("x", 10)
+                        .attr("dy", null);
+            g.insert("path", ".axis")
+             .datum(data.concat({day: date1, 0: 0, 1: 0})) // for step-after
+             .attr("class", "data")
+             .attr("d", area);
+        });
+
+        function type(d) {
+            d = [parseTime(d.asleep), parseTime(d.awake)];
+            d.day = d3.utcDay.floor(d[0]);
+            debugger;
+            return d;
+        }
+
+        function date(offset) {
+           return new Date(offset);
+        }
     </script>
 </body>
 </html>
