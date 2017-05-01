@@ -1,0 +1,2 @@
+http://datasets.flowingdata.com/hot-dog-contest-winners.csv
+http://datasets.flowingdata.com/hot-dog-places.csv

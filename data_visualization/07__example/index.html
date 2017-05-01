@@ -1,0 +1,74 @@
+<!DOCTYPE>
+<html>
+    <head>
+        <title>Bar chart</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://d3js.org/d3.v4.min.js"></script>
+        <style>
+            .axis--y path{
+                display: none
+            }
+        </style>
+    </head>
+    <body>
+        <svg width="960" height="550"></svg>
+        <script>
+            var svg = d3.select('svg'),
+            margin = {top: 20, right: 20, bottom: 30, left: 40},
+            width = +svg.attr("width") - margin.left - margin.right,
+            height = +svg.attr("height") - margin.top - margin.bottom,
+            group_chart = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            var formatYear = d3.timeFormat('%Y'),
+            parseTime = d3.timeParse("%Y");
+
+            var y_scale = d3.scaleLinear().range([height, 0]),
+            x_scale = d3.scaleBand().rangeRound([0, width]).paddingInner(0.05).align(0.1);
+
+            d3.csv('hot-dog-contest-winners.csv',type, (err, data) =>{
+                if(err) throw err;
+
+                y_scale.domain([0, d3.max(data, d => d['Dogs eaten']) ]);
+                // x_scale.domain(d3.extent(data, d => d['Year'] ));
+                x_scale.domain( data.map( d => d['Year']));
+                // debugger;
+
+                group_chart.append('g')
+                            .attr('class', 'data')
+                        .selectAll('rect')
+                            .data(data)
+                            .enter()
+                            .append('rect')
+                            .attr('fill', d => {
+                                if(d['New record']){
+                                    return 'seagreen';
+                                }else{
+                                    return 'gray';
+                                }
+                            })
+                            .attr('x', d => x_scale(d['Year']))
+                            .attr('y', d => {
+                                return y_scale(d['Dogs eaten']);
+                            })
+                            .attr('width', d => x_scale.bandwidth() )
+                            .attr('height', d => {
+                                return height - y_scale(d['Dogs eaten']);
+                            } );
+                group_chart.append('g')
+                                .attr('class', 'axis axis--y')
+                                .call(d3.axisLeft(y_scale));
+                group_chart.append('g')
+                                .attr('class','axis axis--x')
+                                .attr("transform", "translate(0," + height + ")")
+                                .call(d3.axisBottom(x_scale));
+            });
+            function type(line){
+                // line['Year'] = parseTime(line['Year']);
+                line['Dogs eaten'] = +line['Dogs eaten'];
+                line['New record'] = +line['New record'];
+                return line;
+            }
+        </script>
+    </body>
+</html>
