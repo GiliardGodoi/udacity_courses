@@ -29,6 +29,6 @@ def get_db():
 
 if __name__ == "__main__":
     # For local use
-    # db = get_db() # uncomment this line if you want to run this locally
+    db = get_db() # uncomment this line if you want to run this locally
     add_city(db)
     print get_city(db)
