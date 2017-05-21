@@ -1,0 +1,7 @@
+
+
+
+https://docs.mongodb.com/manual/reference/operator/query/regex/
+https://docs.python.org/2/howto/regex.html
+https://developers.google.com/edu/python/regular-expressions?csw=1
+https://docs.mongodb.com/manual/reference/program/mongoimport/
