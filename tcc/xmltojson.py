@@ -8,7 +8,8 @@ def dict_to_json(dict_data) :
 
 def save_json_file(json_data,json_file='file.json'):
     with codecs.open(json_file,encoding='utf-8',mode='a') as file :
-        file.write(json_data)
+        for d in json_data:
+            file.write(d)
         return True
 
 def file_handler(folder):
@@ -23,12 +24,26 @@ def file_handler(folder):
             file_handler(new_folder)
             os.chdir(folder)
 
+def process_xml_file(xml_file):
+    tree = ET.parse(xml_file)
+    root = tree.getroot()
+    lenght = len(root)
+    limit = 500
+    padding = limit
+    skip = 0
+    data = []
+    while(skip < lenght):
+        for i in range(skip, limit):
+            element = root[i]
+            attr = element.attrib
+            d = dict_to_json(attr)
+            data.append(d)
+        save_json_file(data,'arquivo.json')
+        data = []
+        skip = limit
+        limit = (limit + padding) if (limit + padding) < lenght else lenght
+
 if __name__ == '__main__' :
     diretorio = 'despesas'
     arquivo = '2014_410100_Empenho.xml'
-    tree = ET.parse(os.path.join(diretorio,arquivo))
-    root = tree.getroot()
-    for elem in root:
-        attr = elem.attrib
-        data = dict_to_json(attr)
-        save_json_file(data,'2014_410100_empenho.json')
+    process_xml_file(os.path.join(diretorio,arquivo))
