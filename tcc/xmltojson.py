@@ -17,7 +17,7 @@ def file_handler(folder):
     files = os.listdir(os.getcwd())
     for f in files:
         if(os.path.isfile(f)):
-            # extract_schema(f) extract_data
+            process_xml_file(f)
             pass
         else :
             new_folder = os.path.join(os.getcwd(), f)
@@ -28,20 +28,31 @@ def process_xml_file(xml_file):
     tree = ET.parse(xml_file)
     root = tree.getroot()
     lenght = len(root)
-    limit = 500
-    padding = limit
-    skip = 0
-    data = []
+    print(lenght)
+    limit = 500 if 500 < lenght else lenght
+    skip = 0; padding = limit
     while(skip < lenght):
-        for i in range(skip, limit):
-            element = root[i]
-            attr = element.attrib
-            d = dict_to_json(attr)
-            data.append(d)
-        save_json_file(data,'arquivo.json')
-        data = []
+        process_root_xml_data(root,skip, limit)
         skip = limit
         limit = (limit + padding) if (limit + padding) < lenght else lenght
+
+def process_root_xml_data(root, skip, limit):
+    data =  []
+    for i in range(skip, limit):
+        element = root[i]
+        attr = strip_all_fields(element.attrib)
+        d = dict_to_json(attr)
+        data.append(d)
+    save_json_file(data,'2014_410100_Empenho.json')
+
+def strip_all_fields(dictionary):
+    keys = dictionary.keys()
+    for k in keys:
+        if( type(dictionary[k]) is str ):
+            dictionary[k] = dictionary[k].strip()
+    return dictionary
+
+
 
 if __name__ == '__main__' :
     diretorio = 'despesas'
