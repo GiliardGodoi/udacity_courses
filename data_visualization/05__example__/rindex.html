@@ -6,22 +6,23 @@
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
         <script src="https://d3js.org/d3.v4.min.js"></script>
     <style>
-        .datasf {
+        .data {
             fill: steelblue;
         }
 
         .axis--y .tick line {
-            stroke: black;
+            stroke: red;
             stroke-opacity: 0.8;
-            stroke-dasharray: 1, 10;
         }
 
         .axis--x .tick line {
             stroke: #000;
             stroke-opacity: 0.25;
-            
         }
 
+        .axis .domain {
+            
+        }
     </style>
     </head>
     <body>
@@ -35,7 +36,7 @@
             height = svg.attr("height") - margin.top - margin.bottom,
             group_chart = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-            d3.tsv('projetos.tsv',type, (err, data) => {
+            d3.tsv('leis_2016.tsv',type, (err, data) => {
                 if(err) throw err;
                 debugger;
                 
@@ -55,13 +56,6 @@
                             .enter()
                             .append('rect')
                             .attr('class', 'data')
-                            .attr('fill', d => {
-                                if(d['dt_votacao_2'] && d['dt_votacao_2'].getDay() != 1){
-                                    return '#4646b4';
-                                }else{
-                                    return '#46b47d';
-                                }
-                            })
                             .attr('y',d => y_scale(d.nro_projeto_lei) )
                             .attr('x',d => x_scale(d.dt_recebimento) )
                             .attr('height', y_scale.bandwidth())
@@ -70,10 +64,9 @@
                             } )
                             .text( d => d.nro_projeto_lei );
 
-                group_chart.append("g").attr("class", "axis axis--y").call(d3.axisLeft(y_scale).tickSize(-width));
+                group_chart.append("g").attr("class", "axis axis--y").call(d3.axisLeft(y_scale) );
 
-                //group_chart.append('g').attr('class', 'axis axis--x').call( d3.axisTop(x_scale).tickSize(-height).tickPadding(5) );
-                group_chart.append('g').attr('class', 'axis axis--x').call( d3.axisTop(x_scale));
+                group_chart.append('g').attr('class', 'axis axis--x').call( d3.axisTop(x_scale).tickSize(-height).tickPadding(5) );
                 
             });
 
