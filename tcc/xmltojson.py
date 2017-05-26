@@ -16,10 +16,9 @@ def file_handler(folder):
     os.chdir(folder)
     files = os.listdir(os.getcwd())
     for f in files:
-        if(os.path.isfile(f)):
+        if(os.path.isfile(f) and f.endswith('.xml') ):
             process_xml_file(f)
-            pass
-        else :
+        elif(os.path.isdir(f)) :
             new_folder = os.path.join(os.getcwd(), f)
             file_handler(new_folder)
             os.chdir(folder)
@@ -32,7 +31,8 @@ def process_xml_file(xml_file):
     limit = 500 if 500 < lenght else lenght
     skip = 0; padding = limit
     while(skip < lenght):
-        process_root_xml_data(root,skip, limit)
+        data = process_root_xml_data(root,skip, limit)
+        save_json_file(data,'2014_410100_Empenho.json')
         skip = limit
         limit = (limit + padding) if (limit + padding) < lenght else lenght
 
@@ -43,7 +43,7 @@ def process_root_xml_data(root, skip, limit):
         attr = strip_all_fields(element.attrib)
         d = dict_to_json(attr)
         data.append(d)
-    save_json_file(data,'2014_410100_Empenho.json')
+    return data
 
 def strip_all_fields(dictionary):
     keys = dictionary.keys()
