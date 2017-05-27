@@ -1,0 +1,27 @@
+        /*.data {
+            fill: steelblue;
+        }*/
+
+        .axis--y .tick line {
+            stroke: black;
+            stroke-opacity: 0.8;
+            stroke-dasharray: 1, 10;
+        }
+
+        .axis--x .tick line {
+            stroke: #000;
+            stroke-opacity: 0.25;
+            
+        }
+        div.tooltip {
+            position: absolute;
+            text-align: center;
+            width: 200px;
+            height: 100px;
+            padding: 2px;
+            font: 11px sans-serif;
+            background: lightsteelblue;
+            border: 0px;
+            border-radius: 8px;
+            pointer-events: none;
+        }

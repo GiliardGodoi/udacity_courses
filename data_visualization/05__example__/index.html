@@ -5,24 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
         <script src="https://d3js.org/d3.v4.min.js"></script>
-    <style>
-        .datasf {
-            fill: steelblue;
-        }
-
-        .axis--y .tick line {
-            stroke: black;
-            stroke-opacity: 0.8;
-            stroke-dasharray: 1, 10;
-        }
-
-        .axis--x .tick line {
-            stroke: #000;
-            stroke-opacity: 0.25;
-            
-        }
-
-    </style>
+        <link rel="stylesheet" type="text/css" href="style.css">
     </head>
     <body>
         <svg width="960" height="960"></svg>
@@ -35,6 +18,11 @@
             height = svg.attr("height") - margin.top - margin.bottom,
             group_chart = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+            var divs = d3.select('body')
+                         .append('div')
+                         .attr('class','tooltip')
+                         .style('opacity',0)
+
             d3.tsv('projetos.tsv',type, (err, data) => {
                 if(err) throw err;
                 debugger;
@@ -43,11 +31,7 @@
                 
                 var y_scale = d3.scaleBand().rangeRound([0, height]).domain(data.map(d => d.nro_projeto_lei) ).paddingInner(0.05).align(0.1);
                 var x_scale = d3.scaleTime().rangeRound([0, width]).domain([d0, d1]);
-                
-                var area = d3.area().curve(d3.curveStepBefore)
-                                    .y(d => y_scale(d.nro_projeto_lei))
-                                    .x0(d => x_scale(d.dt_recebimento))
-                                    .x1(d => x_scale(d.dt_votacao_2) );                
+             
                 group_chart.append('g')
                             .attr('class', '.axis')
                         .selectAll('rect')
@@ -67,18 +51,31 @@
                             .attr('height', y_scale.bandwidth())
                             .attr('width', d => {
                                 return x_scale(d.dt_votacao_2) - x_scale(d.dt_recebimento);
-                            } )
-                            .text( d => d.nro_projeto_lei );
+                            })
+                            .on('mouseover', (d) => {
+                                debugger;
+                                divs.transition()
+                                    .duration(200)
+                                    .style('opacity', .9);
+                                divs.html(d.ementa_projeto)
+                                    .style('left', (d3.event.pageX)+'px')
+                                    .style('top', (d3.event.pageY - 28) + 'px');
+                            })
+                            .on('mouseout', (d) => {
+                                divs.transition()
+                                    .duration(500)
+                                    .style('opacity',0);
+                            });
 
                 group_chart.append("g").attr("class", "axis axis--y").call(d3.axisLeft(y_scale).tickSize(-width));
 
-                //group_chart.append('g').attr('class', 'axis axis--x').call( d3.axisTop(x_scale).tickSize(-height).tickPadding(5) );
-                group_chart.append('g').attr('class', 'axis axis--x').call( d3.axisTop(x_scale));
+                group_chart.append('g').attr('class', 'axis axis--x').call( d3.axisTop(x_scale).tickSize(-height).tickPadding(5) );
+                // group_chart.append('g').attr('class', 'axis axis--x').call( d3.axisTop(x_scale));
                 
             });
 
             function type(d){
-                debugger;
+                
                 campo_data = ['dt_recebimento', 'dt_comissao_legislacao', 'dt_comissao_financas', 'dt_comissao_educacao', 'dt_comissao_obras', 'dt_votacao_1', 'dt_votacao_2']
                 for(el of campo_data){
                     d[el] = d[el] ? parseTime(d[el]) : 0;
