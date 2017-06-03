@@ -41,7 +41,7 @@ def process_xml_file(xml_file, output_dir):
     tree = ET.parse(xml_file)
     root = tree.getroot()
     lenght = len(root)
-    print(lenght)
+    print('file: ',xml_file,'nodes: ',lenght)
     limit = 500 if 500 < lenght else lenght
     skip = 0; padding = limit
     output_file = generate_output_file(xml_file, output_dir)
